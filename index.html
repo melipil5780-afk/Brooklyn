@@ -30,17 +30,15 @@ body{
   font-family:var(--f-body);line-height:1.6;
   -webkit-font-smoothing:antialiased;
   display:grid;place-items:center;min-height:100%;
-  padding:2rem 1.25rem;
-  overflow-x:hidden;
+  padding:2rem 1.25rem;overflow-x:hidden;
 }
 body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(90% 70% at 50% 30%, rgba(26,24,21,0), rgba(0,0,0,.5) 100%);
 }
 
-.panel{position:relative;z-index:2;text-align:center;max-width:26rem;width:100%}
-
-.mark{width:92px;height:104px;margin:0 auto 2rem;display:block}
+.panel{position:relative;z-index:1;text-align:center;max-width:26rem;width:100%}
+.mark{display:block;margin:0 auto}
 
 .eyebrow{
   font-weight:700;color:var(--fire);
@@ -52,6 +50,19 @@ h1{
   font-size:clamp(3rem,13vw,4.6rem);line-height:.92;margin:0;letter-spacing:.015em;
 }
 .bar{width:56px;height:4px;background:var(--fire);margin:1.6rem auto 0}
+
+/* ================= FRONT (the door) =================
+   A full-screen layer. On the right word, THIS burns away. */
+#front{
+  position:fixed;inset:0;z-index:20;background:var(--iron);
+  display:grid;place-items:center;overflow:auto;
+  padding:2rem 1.25rem;
+}
+#front::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(90% 70% at 50% 30%, rgba(26,24,21,0), rgba(0,0,0,.5) 100%);
+}
+#front .mark{width:92px;height:104px;margin-bottom:2rem}
 
 /* the four archetypes */
 .arche{
@@ -65,7 +76,6 @@ h1{
   font-size:.86rem;letter-spacing:.14em;text-indent:.14em;color:var(--bone-dim);
 }
 
-/* gate */
 .sub{color:var(--bone-dim);font-size:.95rem;font-weight:500;margin:1.6rem 0 0}
 .field{
   display:flex;align-items:stretch;max-width:21rem;margin:1.8rem auto 0;
@@ -89,66 +99,93 @@ h1{
 .shake{animation:shake .35s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
 
-/* ============ INITIATION SEQUENCE ============ */
-#rite{
-  position:fixed;inset:0;z-index:50;display:none;
-  background:#0b0a09;
-  align-items:center;justify-content:center;text-align:center;
+/* ================= THE BURN =================
+   The front page catches at the bottom and is consumed upward.
+   Turbulence filters keep the edge ragged and alive. */
+#front.burning{
+  pointer-events:none;
+  filter:url(#char);
+  animation:burn 1.5s cubic-bezier(.6,.05,.4,.95) both;
 }
-#rite.on{display:flex}
-.rite-inner{transform:translateY(-2vh);position:relative;padding:0 1.25rem;max-width:100%}
-#rite .mark{width:120px;height:136px;margin:0 auto;opacity:0}
-#rite.on .mark{animation:crest-in .5s .1s cubic-bezier(.2,1.4,.4,1) both}
-@keyframes crest-in{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-/* the flame ignites: fill sweeps up via clip */
-#rite .flame-lit{clip-path:inset(100% 0 0 0)}
-#rite.on .flame-lit{animation:ignite .7s .55s ease-out both}
-@keyframes ignite{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
-/* alive only during the rite: a low, heavy flicker */
-#rite.on .flame-lit path{transform-origin:46px 82px;animation:live 1.1s 1.25s ease-in-out infinite}
-@keyframes live{
-  0%,100%{transform:scaleY(1)}
-  30%{transform:scaleY(1.04) skewX(.8deg)}
-  60%{transform:scaleY(.97)}
-  80%{transform:scaleY(1.02) skewX(-.6deg)}
+@keyframes burn{
+  from{clip-path:inset(-8% -8% -8% -8%)}
+  to{clip-path:inset(-8% -8% 115% -8%)}
 }
 
-.stamp{
-  font-family:var(--f-disp);font-weight:800;text-transform:uppercase;
-  font-size:clamp(2.6rem,10vw,4.2rem);line-height:1;letter-spacing:.04em;
-  color:var(--bone);margin:1.6rem 0 0;opacity:0;
+#fire{position:fixed;inset:0;z-index:21;pointer-events:none;display:none}
+#fire.on{display:block}
+.char-rim{
+  position:absolute;left:-10%;right:-10%;height:34px;top:100%;
+  opacity:0;filter:url(#char) blur(1px);
+  background:linear-gradient(180deg, transparent, #2a1207 40%, #3d1505 70%, #1a0c04);
 }
-#rite.on .stamp{animation:stamp .38s 1.35s cubic-bezier(.15,1.3,.3,1) both}
-@keyframes stamp{
-  0%{opacity:0;transform:scale(1.9)}
-  70%{opacity:1;transform:scale(.97)}
-  100%{opacity:1;transform:scale(1)}
+.edge{
+  position:absolute;left:-10%;right:-10%;height:90px;top:100%;
+  opacity:0;filter:url(#lick) blur(2px);
+  background:
+    linear-gradient(180deg,
+      transparent 0%,
+      rgba(120,20,4,.85) 30%,
+      rgba(214,72,18,.95) 52%,
+      rgba(255,140,40,1) 68%,
+      rgba(255,214,140,1) 82%,
+      rgba(255,246,220,1) 92%,
+      rgba(255,255,250,.9) 100%);
+  mix-blend-mode:screen;
 }
-.stamp .fire-word{color:var(--fire)}
-.stamp-sub{
-  font-family:var(--f-body);font-weight:600;font-size:.72rem;
-  letter-spacing:.4em;text-indent:.4em;text-transform:uppercase;
-  color:var(--bone-dim);margin-top:1rem;opacity:0;
+.edge2{
+  position:absolute;left:-10%;right:-10%;height:150px;top:100%;
+  opacity:0;filter:blur(18px);
+  background:linear-gradient(180deg, transparent, rgba(214,90,30,.55) 60%, rgba(255,160,60,.75));
+  mix-blend-mode:screen;
 }
-#rite.on .stamp-sub{animation:fade-up .5s 1.75s ease both}
-@keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-/* the whole screen thuds when the word lands */
-#rite.on{animation:thud .3s 1.35s ease-out}
-@keyframes thud{0%{transform:translateY(0)}30%{transform:translateY(5px)}100%{transform:translateY(0)}}
-/* the curtain lifts: black screen wipes upward, page revealed beneath */
-#rite.leaving{animation:curtain .65s cubic-bezier(.7,0,.2,1) both !important}
-#rite.leaving .rite-inner{animation:inner-up .65s cubic-bezier(.7,0,.2,1) both}
-@keyframes curtain{to{clip-path:inset(0 0 100% 0)}}
-@keyframes inner-up{to{transform:translateY(-40vh);opacity:0}}
+#fire.on .char-rim{animation:climb 1.5s cubic-bezier(.6,.05,.4,.95) both}
+#fire.on .edge{animation:climb 1.5s cubic-bezier(.6,.05,.4,.95) both, flare .18s linear infinite}
+#fire.on .edge2{animation:climb 1.5s cubic-bezier(.6,.05,.4,.95) both}
+@keyframes climb{
+  0%{top:100%;opacity:0}
+  6%{opacity:1}
+  88%{opacity:1}
+  100%{top:-18%;opacity:0}
+}
+@keyframes flare{
+  0%{filter:url(#lick) blur(2px) brightness(1)}
+  50%{filter:url(#lick) blur(2px) brightness(1.18)}
+  100%{filter:url(#lick) blur(2px) brightness(1)}
+}
+.sparks i{
+  position:absolute;width:3px;height:3px;border-radius:50%;
+  background:#ffcf8a;box-shadow:0 0 6px 2px rgba(255,150,50,.8);
+  opacity:0;
+}
+#fire.on .sparks i{animation:spark .9s ease-out both}
+.sparks i:nth-child(1){left:14%;bottom:0;animation-delay:.15s}
+.sparks i:nth-child(2){left:31%;bottom:0;animation-delay:.4s}
+.sparks i:nth-child(3){left:47%;bottom:0;animation-delay:.25s}
+.sparks i:nth-child(4){left:62%;bottom:0;animation-delay:.55s}
+.sparks i:nth-child(5){left:78%;bottom:0;animation-delay:.35s}
+.sparks i:nth-child(6){left:90%;bottom:0;animation-delay:.6s}
+@keyframes spark{
+  0%{opacity:0;transform:translateY(0) translateX(0)}
+  15%{opacity:1}
+  100%{opacity:0;transform:translateY(-70vh) translateX(18px)}
+}
 
-/* inside */
-#inside{display:none}
-#inside.on{display:block}
-#inside.on > *{opacity:0;animation:rise .55s ease both}
-#inside.on > :nth-child(1){animation-delay:.15s}
-#inside.on > :nth-child(2){animation-delay:.3s}
-#inside.on > :nth-child(3){animation-delay:.42s}
-#inside.on > :nth-child(4){animation-delay:.52s}
+/* ================= MEMBERS (revealed beneath) ================= */
+#members{visibility:hidden}
+#members.on{visibility:visible}
+#members .mark{width:64px;height:72px;margin-bottom:1.2rem}
+#members .name{
+  font-family:var(--f-disp);font-weight:700;text-transform:uppercase;
+  font-size:1.15rem;letter-spacing:.22em;text-indent:.22em;color:var(--bone-dim);margin:0;
+}
+#members.on > *{opacity:0;animation:rise .55s ease both}
+#members.on > :nth-child(1){animation-delay:.35s}
+#members.on > :nth-child(2){animation-delay:.45s}
+#members.on > :nth-child(3){animation-delay:.6s}
+#members.on > :nth-child(4){animation-delay:.75s}
+#members.on > :nth-child(5){animation-delay:.85s}
+#members.on > :nth-child(6){animation-delay:.95s}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
 .king{
@@ -187,91 +224,120 @@ h1{
 .tiny{margin-top:2.2rem;font-size:.78rem;font-weight:500;color:var(--bone-faint);letter-spacing:.06em;text-transform:uppercase}
 
 @media (max-width: 380px){
-  .mark{width:76px;height:86px;margin-bottom:1.6rem}
+  #front .mark{width:76px;height:86px;margin-bottom:1.6rem}
   .arche{gap:.25rem}
   .arche svg{width:22px;height:22px}
   .arche span{font-size:.72rem;letter-spacing:.09em;text-indent:.09em}
   .field input{font-size:1rem;padding:.85rem .9rem}
   .field button{padding:0 1.1rem;font-size:.92rem}
   .king .who{font-size:2rem}
-  #rite .mark{width:100px;height:114px}
-  .stamp-sub{letter-spacing:.28em;text-indent:.28em}
 }
 
 @media (prefers-reduced-motion: reduce){
-  *{animation:none !important;transition:none !important}
+  *{animation:none !important;transition:none !important;filter:none !important}
+  #members.on > *{opacity:1}
 }
 </style>
 </head>
 <body>
 
-<!-- ====== THE CREST ======
-     Angular, forged flame — every edge is a straight cut, like it was
-     struck from steel. Shield with a notched shoulder + chevron base. -->
+<!-- ====== THE CREST ====== -->
 <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
   <symbol id="crest" viewBox="0 0 92 104">
-    <!-- shield: flat top with notched shoulders, tapering to a point -->
     <path d="M8 6h76v14l-6 6v28c0 24-14.5 38.5-32 45C28.5 92.5 14 78 14 54V26l-6-6V6Z"
           fill="#1a1815" stroke="#57503f" stroke-width="2.5" stroke-linejoin="miter"/>
-    <!-- inner keyline -->
     <path d="M15 12h62v6.6l-6 6V54c0 20.4-12.2 32.9-25 38.6C33.2 86.9 21 74.4 21 54V24.6l-6-6V12Z"
           fill="none" stroke="#3d3931" stroke-width="1.5"/>
-    <!-- rivets on the shoulders -->
     <rect x="12" y="9" width="3" height="3" fill="#57503f"/>
     <rect x="77" y="9" width="3" height="3" fill="#57503f"/>
-    <!-- faceted flame: straight cuts only -->
-    <path class="flame-body" d="M46 26 56 42l-3 8 8-4-1 14-9 16h-10l-9-16 3-13 6 5-2-12 7-14Z"
+    <path d="M46 26 56 42l-3 8 8-4-1 14-9 16h-10l-9-16 3-13 6 5-2-12 7-14Z"
           fill="#c2491d" stroke-linejoin="miter"/>
-    <!-- negative-space inner facet -->
-    <path class="flame-core" d="M46 48l5 8-2 10-3 6-3-6-2-10 5-8Z" fill="#1a1815"/>
-    <!-- chevron base -->
+    <path d="M46 48l5 8-2 10-3 6-3-6-2-10 5-8Z" fill="#1a1815"/>
     <path d="M28 84 46 92l18-8" fill="none" stroke="#57503f" stroke-width="2.5" stroke-linecap="square"/>
   </symbol>
 </svg>
 
-<div class="panel">
+<!-- burn filters -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="char" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.032 0.06" numOctaves="4" seed="7" result="n">
+        <animate attributeName="seed" values="7;8;9;10;11;12;7" dur="0.9s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="46" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="lick" x="-20%" y="-40%" width="140%" height="180%">
+      <feTurbulence type="turbulence" baseFrequency="0.05 0.11" numOctaves="3" seed="3" result="n">
+        <animate attributeName="seed" values="3;5;7;9;11;3" dur="0.45s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="34" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 
+<!-- ====== MEMBERS PAGE (beneath the door) ====== -->
+<div class="panel" id="members">
   <svg class="mark" aria-hidden="true"><use href="#crest"/></svg>
+  <p class="name">The Brooklyn Brotherhood</p>
 
-  <p class="eyebrow">Members Only</p>
-  <h1>The<br>Brooklyn<br>Brotherhood</h1>
-  <div class="bar"></div>
+  <p class="king">
+    <span class="lbl">Next Circle</span>
+    <span class="who" id="king"></span>
+    <span class="when" id="when"></span>
+  </p>
 
-  <div class="arche" aria-label="The four archetypes">
-    <div class="a">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M5 22 5 11l6 5 5-9 5 9 6-5v11Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
-        <path d="M5 25h22" stroke="currentColor" stroke-width="2"/>
-      </svg>
-      <span>King</span>
-    </div>
-    <div class="a">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 3v18" stroke="currentColor" stroke-width="2"/>
-        <path d="M16 3l3 4h-6l3-4Z" fill="currentColor"/>
-        <path d="M9 19h14" stroke="currentColor" stroke-width="2"/>
-        <path d="M13 23h6M16 21v7" stroke="currentColor" stroke-width="2"/>
-      </svg>
-      <span>Warrior</span>
-    </div>
-    <div class="a">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 4l3.2 8.1L28 13l-6.5 5.8L23.4 28 16 23.2 8.6 28l1.9-9.2L4 13l8.8-.9L16 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
-        <path d="M16 13l1.6 3.4-1.6 4.2-1.6-4.2L16 13Z" fill="currentColor"/>
-      </svg>
-      <span>Magician</span>
-    </div>
-    <div class="a">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 27 5 16V9l5-4 6 6 6-6 5 4v7L16 27Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
-        <path d="M16 11v6" stroke="currentColor" stroke-width="2"/>
-      </svg>
-      <span>Lover</span>
-    </div>
-  </div>
+  <a class="go" id="doc" href="#" target="_blank" rel="noopener">
+    Read the Minutes
+    <small>Opens the group's Google Doc</small>
+  </a>
 
-  <!-- GATE -->
-  <div id="gate">
+  <a class="alt" id="agree" href="#" target="_blank" rel="noopener" style="display:none">Group Agreements</a>
+
+  <p class="tiny">Read before every meeting</p>
+</div>
+
+<!-- ====== FRONT PAGE (the door — this is what burns) ====== -->
+<div id="front">
+  <div class="panel">
+    <svg class="mark" aria-hidden="true"><use href="#crest"/></svg>
+
+    <p class="eyebrow">Members Only</p>
+    <h1>The<br>Brooklyn<br>Brotherhood</h1>
+    <div class="bar"></div>
+
+    <div class="arche" aria-label="The four archetypes">
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M5 22 5 11l6 5 5-9 5 9 6-5v11Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
+          <path d="M5 25h22" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>King</span>
+      </div>
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 3v18" stroke="currentColor" stroke-width="2"/>
+          <path d="M16 3l3 4h-6l3-4Z" fill="currentColor"/>
+          <path d="M9 19h14" stroke="currentColor" stroke-width="2"/>
+          <path d="M13 23h6M16 21v7" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>Warrior</span>
+      </div>
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 4l3.2 8.1L28 13l-6.5 5.8L23.4 28 16 23.2 8.6 28l1.9-9.2L4 13l8.8-.9L16 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
+          <path d="M16 13l1.6 3.4-1.6 4.2-1.6-4.2L16 13Z" fill="currentColor"/>
+        </svg>
+        <span>Magician</span>
+      </div>
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 27 5 16V9l5-4 6 6 6-6 5 4v7L16 27Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
+          <path d="M16 11v6" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>Lover</span>
+      </div>
+    </div>
+
     <p class="sub">Speak the word, and the circle opens.</p>
     <div class="field">
       <input id="pw" type="password" placeholder="Passcode" autocomplete="off" spellcheck="false"
@@ -280,39 +346,14 @@ h1{
     </div>
     <p class="err" id="err">Not it. Try again, brother.</p>
   </div>
-
-  <!-- INSIDE -->
-  <div id="inside">
-    <p class="king">
-      <span class="lbl">Next Circle</span>
-      <span class="who" id="king"></span>
-      <span class="when" id="when"></span>
-    </p>
-
-    <a class="go" id="doc" href="#" target="_blank" rel="noopener">
-      Read the Minutes
-      <small>Opens the group's Google Doc</small>
-    </a>
-
-    <a class="alt" id="agree" href="#" target="_blank" rel="noopener" style="display:none">Group Agreements</a>
-
-    <p class="tiny">Read before every meeting</p>
-  </div>
 </div>
 
-<!-- INITIATION: plays once on correct passcode -->
-<div id="rite" aria-hidden="true">
-  <div class="rite-inner">
-    <svg class="mark" aria-hidden="true">
-      <use href="#crest" style="--x:0"/>
-    </svg>
-    <!-- lit flame overlay that ignites bottom-to-top -->
-    <svg class="mark flame-lit" style="position:absolute;left:50%;transform:translateX(-50%);top:0" viewBox="0 0 92 104" aria-hidden="true">
-      <path d="M46 26 56 42l-3 8 8-4-1 14-9 16h-10l-9-16 3-13 6 5-2-12 7-14Z" fill="#d95a29"/>
-    </svg>
-    <p class="stamp">Welcome,<br><span class="fire-word">Brother</span></p>
-    <p class="stamp-sub">The circle opens</p>
-  </div>
+<!-- fire riding the burn line, above the door -->
+<div id="fire" aria-hidden="true">
+  <div class="char-rim"></div>
+  <div class="edge2"></div>
+  <div class="edge"></div>
+  <div class="sparks"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 </div>
 
 <script>
@@ -344,7 +385,7 @@ function hashPass(s){
 window.hashPass = hashPass;
 
 const $=id=>document.getElementById(id);
-const gate=$("gate"), inside=$("inside"), pw=$("pw"), err=$("err"), rite=$("rite");
+const front=$("front"), fire=$("fire"), members=$("members"), pw=$("pw"), err=$("err");
 
 $("king").textContent = "King: " + KING;
 $("when").textContent = WHEN;
@@ -353,24 +394,24 @@ if(AGREEMENTS_URL){ $("agree").href = AGREEMENTS_URL; $("agree").style.display =
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function showInside(){
-  gate.style.display = "none";
-  inside.classList.add("on");
-}
-
 function tryUnlock(){
   if(hashPass(pw.value) === PASS_HASH){
-    if(reducedMotion){ showInside(); return; }
-    // initiation sequence: crest lands → flame ignites → the word stamps → thud → fade to inside
-    rite.classList.add("on");
+    if(reducedMotion){
+      front.style.display = "none";
+      members.classList.add("on");
+      return;
+    }
+    pw.blur();
+    members.classList.add("on");   // members page waits beneath the door
+    front.classList.add("burning"); // the door catches fire
+    fire.classList.add("on");
     setTimeout(()=>{
-      showInside();                 // page is already rising beneath...
-      rite.classList.add("leaving"); // ...as the curtain lifts off it
-      setTimeout(()=>{ rite.classList.remove("on","leaving"); }, 700);
-    }, 2900);
+      front.style.display = "none";
+      fire.classList.remove("on");
+    }, 1600);
   } else {
     err.classList.add("on");
-    const p = document.querySelector(".panel");
+    const p = front.querySelector(".panel");
     p.classList.add("shake");
     setTimeout(()=>p.classList.remove("shake"), 400);
     pw.select();
