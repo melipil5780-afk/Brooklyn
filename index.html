@@ -352,6 +352,8 @@ precision highp float;
 uniform vec2 u_res;
 uniform float u_time;      // seconds since ignition
 uniform float u_prog;      // eased burn progress 0..1
+uniform vec2 u_center;     // ignition point, pixels (y up)
+uniform float u_maxd;      // farthest corner distance, pixels
 
 float hash(vec2 v){ return fract(sin(dot(v, vec2(127.1,311.7)))*43758.5453); }
 float noise(vec2 v){
@@ -366,89 +368,88 @@ float fbm(vec2 v){
   return s;
 }
 
-/* warm blackbody-ish ramp: deep red -> ember orange -> gold -> warm white */
+/* warm blackbody ramp: deep red -> ember -> gold -> warm white */
 vec3 fireRamp(float t){
   t=clamp(t,0.,1.);
-  vec3 c1=vec3(.45,.04,.0);    // deep red
-  vec3 c2=vec3(.95,.30,.03);   // ember
-  vec3 c3=vec3(1.,.62,.16);    // gold
-  vec3 c4=vec3(1.,.88,.62);    // warm white
-  vec3 c = mix(c1,c2,smoothstep(0.,.35,t));
-  c = mix(c,c3,smoothstep(.35,.7,t));
-  c = mix(c,c4,smoothstep(.7,1.,t));
+  vec3 c=mix(vec3(.45,.04,.0),vec3(.95,.30,.03),smoothstep(0.,.35,t));
+  c=mix(c,vec3(1.,.62,.16),smoothstep(.35,.7,t));
+  c=mix(c,vec3(1.,.88,.62),smoothstep(.7,1.,t));
   return c;
 }
 
 void main(){
-  vec2 uv = gl_FragCoord.xy/u_res;       // 0,0 bottom-left
-  float aspect = u_res.x/u_res.y;
-  vec2 q = vec2(uv.x*aspect, uv.y);
+  vec2 px = gl_FragCoord.xy;
+  vec2 rel = px - u_center;
+  float dist = length(rel);
+  vec2 dir = dist>1. ? rel/dist : vec2(0.,1.);
 
-  /* burn line climbs from below screen to above */
-  float lineY = mix(-.08, 1.15, u_prog);
-  /* ragged front: big slow waves + fine chatter */
-  float rag = fbm(vec2(q.x*2.2, u_time*.35))*.075
-            + fbm(vec2(q.x*9., u_time*.9))*.02;
-  float edgeY = lineY + rag;
+  /* the burning ring: radius grows from the spoken word outward */
+  float R = u_prog * u_maxd;
+  /* ragged front, continuous around the circle: slow heave + fine chatter */
+  float rag = (fbm(dir*2.6 + u_time*.35)-.5) * (60. + 90.*u_prog)
+            + (fbm(dir*9.0 - u_time*.8)-.5) * 26.;
+  float edgeR = R + rag;
 
-  float d = uv.y - edgeY;                 // + above line (unburned page), - below (revealed)
+  float d = dist - edgeR;   /* + outside = unburned page, - inside = revealed room */
+  float dn = d / u_res.y;   /* normalized for band widths */
 
   vec3 col = vec3(0.);
   float alpha = 0.;
 
   /* ---- CHAR: blackened crumbling rim of the remaining page ---- */
-  float charBand = smoothstep(.045,.0,d) * smoothstep(-.012,.004,d);
-  float charTex = fbm(q*26. + u_time*.4);
-  vec3 charCol = mix(vec3(.02,.008,.004), vec3(.16,.05,.015), charTex*.7);
-  col += charCol*charBand;
+  float charBand = smoothstep(.05,.0,dn) * smoothstep(-.014,.004,dn);
+  float charTex = fbm(px*.026 + u_time*.4);
+  col += mix(vec3(.02,.008,.004), vec3(.16,.05,.015), charTex*.7)*charBand;
   alpha = max(alpha, charBand*.98);
+  /* glowing cracks in the char */
+  col += vec3(1.,.42,.08)*smoothstep(.62,.9,charTex)*charBand*.9;
 
-  /* glowing cracks inside the char */
-  float crack = smoothstep(.62,.9,charTex) * charBand;
-  col += vec3(1.,.42,.08)*crack*.9;
-
-  /* ---- SCORCH: heat browning ahead of the flame ---- */
-  float scorch = smoothstep(.16,.03,d) * step(.0,d);
-  float scTex = fbm(q*12.+3.1);
+  /* ---- SCORCH: heat browning the page ahead of the ring ---- */
+  float scorch = smoothstep(.17,.03,dn) * step(.0,dn);
+  float scTex = fbm(px*.012+3.1);
   col += vec3(.10,.045,.015)*scorch*scTex;
   alpha = max(alpha, scorch*scTex*.5);
 
-  /* ---- FLAMES: licking up over the page from the line ---- */
-  float flameH = .16 + .05*fbm(vec2(q.x*3.,u_time*.6));
-  if(d>-.01 && d<flameH+.06){
-    /* upward-streaming combustion noise */
-    float n = fbm(vec2(q.x*5.5, (uv.y*3.0 - u_time*2.1)));
-    n = n*.75 + .25*fbm(vec2(q.x*13., uv.y*7. - u_time*4.2));
-    float body = 1. - clamp(d/flameH,0.,1.);
-    float flame = body*body * smoothstep(.28,.75,n + body*.35);
-    float heat = flame * (1.1 - d/flameH);
-    vec3 fc = fireRamp(heat*1.25);
-    col += fc*flame*1.35;
+  /* ---- FLAMES: fire rises. Near the front, combustion noise streams UP ---- */
+  float near = smoothstep(.14,.0,abs(dn+.02));
+  if(near>.001){
+    vec2 fuv = px/u_res;
+    float n = fbm(vec2(fuv.x*5.5*(u_res.x/u_res.y), fuv.y*3.0 - u_time*2.1));
+    n = n*.75 + .25*fbm(vec2(fuv.x*13., fuv.y*7. - u_time*4.2));
+    /* flames stand taller on the upper arc, hug the ring on the lower */
+    float upness = .55 + .45*dir.y;
+    float flame = near*near * smoothstep(.30,.72,n + near*.3) * upness;
+    col += fireRamp(flame*(1.-abs(dn)*4.)*1.25)*flame*1.4;
     alpha = max(alpha, min(flame*1.6,1.));
   }
 
-  /* ---- BLOOM: warm light washing both sides of the line ---- */
-  float glow = exp(-abs(d)*10.) * .55 + exp(-abs(d)*3.2)*.22;
+  /* ---- BLOOM: warm light breathing out of the widening hole ---- */
+  float glow = exp(-abs(dn)*9.)*.55 + exp(-abs(dn)*3.)*.22;
+  /* ignition pop: extra flash in the first moments */
+  glow += exp(-dist*.012) * smoothstep(.14,.0,u_prog) * .8;
   col += vec3(1.,.5,.16)*glow;
   alpha = max(alpha, glow*.85);
 
-  /* ---- EMBERS: sparks lifting off the front ---- */
-  for(int i=0;i<14;i++){
+  /* interior afterglow: embers dying on the revealed floor near the rim */
+  float inside = smoothstep(.0,-.05,dn)*smoothstep(-.16,-.05,dn);
+  float emb = smoothstep(.7,.95,fbm(px*.03+9.7))*inside;
+  col += vec3(1.,.35,.08)*emb*.5;
+  alpha = max(alpha, emb*.45);
+
+  /* ---- EMBERS: sparks born on the ring, rising ---- */
+  for(int i=0;i<16;i++){
     float fi=float(i);
     float seed=hash(vec2(fi,7.3));
-    float life=fract(u_time*(.55+seed*.5)+seed*7.);
-    float ex=fract(seed*13.7 + fi*.318)* aspect;
-    float ey=lineY + .015 + life*(.22+seed*.2);
-    float wob=(fbm(vec2(fi,u_time*1.5))-.5)*.05;
-    vec2 ep=vec2(ex+wob, ey);
-    float dist=length((q-ep)*vec2(1.,1.));
-    float spark=exp(-dist*dist*u_res.y*3.2)*(1.-life)*(step(.02,life));
+    float life=fract(u_time*(.5+seed*.55)+seed*7.);
+    float a=seed*6.28318 + fi*1.7;
+    vec2 birth = u_center + vec2(cos(a),sin(a))*R;
+    vec2 ep = birth + vec2((fbm(vec2(fi,u_time*1.4))-.5)*60., life*(120.+seed*140.));
+    float spark=exp(-dot(px-ep,px-ep)*.02)*(1.-life)*step(.03,life);
     col += vec3(1.,.72,.34)*spark*1.4;
     alpha = max(alpha, min(spark,1.));
   }
 
-  /* fade everything at the very start and end */
-  float fade = smoothstep(0.,.04,u_prog)*smoothstep(1.,.93,u_prog);
+  float fade = smoothstep(0.,.03,u_prog)*smoothstep(1.,.94,u_prog);
   gl_FragColor = vec4(col*fade, clamp(alpha,0.,1.)*fade);
 }`;
 
@@ -485,14 +486,14 @@ function sizeGL(){
   glCtx.viewport(0,0,glCanvas.width,glCanvas.height);
 }
 
-/* catch, then consume: hold low ~18%, then accelerate away */
+/* catch, then consume: the fire establishes, then takes everything */
 function easeBurn(t){
-  if(t<.18) return .03*(t/.18);
-  const u=(t-.18)/.82;
-  return .03 + .97*(u*u*(3.-2.*u)); // smoothstep on the climb
+  if(t<.16) return .015*(t/.16);
+  const u=(t-.16)/.84;
+  return .015 + .985*(u*u*(3.-2.*u));
 }
 
-const BURN_MS = 2200;
+const BURN_MS = 2400;
 
 function burnDown(){
   const gl = glCtx || initGL();
@@ -504,19 +505,43 @@ function burnDown(){
   sizeGL();
   glCanvas.classList.add("on");
   members.classList.add("on");     // the room waits beneath the door
+
+  /* ignition point: where the word was spoken */
+  const fr = document.querySelector("#front .field").getBoundingClientRect();
+  const cx = fr.left + fr.width/2;
+  const cy = fr.top + fr.height/2;             // CSS px, y down
+  const dpr = glCanvas.width / innerWidth;
+  /* farthest corner from ignition = full consumption distance */
+  const maxd = Math.max(
+    Math.hypot(cx, cy), Math.hypot(innerWidth-cx, cy),
+    Math.hypot(cx, innerHeight-cy), Math.hypot(innerWidth-cx, innerHeight-cy)
+  ) * dpr + 160*dpr;
+
   front.classList.add("burning");
   const uRes=gl.getUniformLocation(glProg,"u_res");
   const uTime=gl.getUniformLocation(glProg,"u_time");
   const uProg=gl.getUniformLocation(glProg,"u_prog");
+  const uCenter=gl.getUniformLocation(glProg,"u_center");
+  const uMaxd=gl.getUniformLocation(glProg,"u_maxd");
   const t0=performance.now();
+
   function frame(now){
     const t=(now-t0)/BURN_MS;
     const p=easeBurn(Math.min(t,1));
-    /* page clip frame-locked to the shader's line */
-    front.style.clipPath = `inset(-8% -8% ${((p*1.23-.08)*100).toFixed(2)}% -8%)`;
+    /* the DOM page gets a radial hole frame-locked to the shader ring.
+       Hole edge sits inside the ring so the char band buries the seam. */
+    const Rcss = p * (maxd/dpr);
+    const inner = Math.max(0, Rcss - 90);
+    const outer = Math.max(8, Rcss - 30);
+    const m = `radial-gradient(circle at ${cx}px ${cy}px, transparent ${inner}px, #000 ${outer}px)`;
+    front.style.webkitMaskImage = m;
+    front.style.maskImage = m;
+
     gl.uniform2f(uRes,glCanvas.width,glCanvas.height);
     gl.uniform1f(uTime,(now-t0)/1000);
     gl.uniform1f(uProg,p);
+    gl.uniform2f(uCenter, cx*dpr, glCanvas.height - cy*dpr); // GL y is up
+    gl.uniform1f(uMaxd, maxd);
     gl.drawArrays(gl.TRIANGLES,0,3);
     if(t<1){ requestAnimationFrame(frame); }
     else{
