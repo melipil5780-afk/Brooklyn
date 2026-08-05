@@ -113,77 +113,15 @@ h1{
 .shake{animation:shake .35s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
 
-/* ================= THE BURN =================
-   The front page catches at the bottom and is consumed upward.
-   Turbulence filters keep the edge ragged and alive. */
-#front.burning{
-  pointer-events:none;
-  animation:burn 1.5s cubic-bezier(.6,.05,.4,.95) both;
+/* ================= THE BURN (WebGL) =================
+   The front page is clipped in JS, frame-locked to the shader's
+   burn line. The canvas draws the fire itself. */
+#front.burning{pointer-events:none}
+#gl{
+  position:fixed;inset:0;z-index:21;pointer-events:none;display:none;
+  width:100vw;height:100vh;
 }
-@keyframes burn{
-  from{clip-path:inset(-8% -8% -8% -8%)}
-  to{clip-path:inset(-8% -8% 115% -8%)}
-}
-
-#fire{position:fixed;inset:0;z-index:21;pointer-events:none;display:none}
-#fire.on{display:block}
-.char-rim{
-  position:absolute;left:-10%;right:-10%;height:56px;top:100%;
-  margin-top:-16px;
-  opacity:0;filter:url(#char) blur(1px);
-  background:linear-gradient(180deg, transparent, #241006 30%, #3d1505 55%, #120802 80%, #0a0502);
-}
-.edge{
-  position:absolute;left:-10%;right:-10%;height:90px;top:100%;
-  opacity:0;filter:url(#lick) blur(2px);
-  background:
-    linear-gradient(180deg,
-      transparent 0%,
-      rgba(120,20,4,.85) 30%,
-      rgba(214,72,18,.95) 52%,
-      rgba(255,140,40,1) 68%,
-      rgba(255,214,140,1) 82%,
-      rgba(255,246,220,1) 92%,
-      rgba(255,255,250,.9) 100%);
-  mix-blend-mode:screen;
-}
-.edge2{
-  position:absolute;left:-10%;right:-10%;height:150px;top:100%;
-  opacity:0;filter:blur(18px);
-  background:linear-gradient(180deg, transparent, rgba(214,90,30,.55) 60%, rgba(255,160,60,.75));
-  mix-blend-mode:screen;
-}
-#fire.on .char-rim{animation:climb 1.5s cubic-bezier(.6,.05,.4,.95) both}
-#fire.on .edge{animation:climb 1.5s cubic-bezier(.6,.05,.4,.95) both, flare .18s linear infinite}
-#fire.on .edge2{animation:climb 1.5s cubic-bezier(.6,.05,.4,.95) both}
-@keyframes climb{
-  0%{top:100%;opacity:0}
-  6%{opacity:1}
-  88%{opacity:1}
-  100%{top:-18%;opacity:0}
-}
-@keyframes flare{
-  0%{filter:url(#lick) blur(2px) brightness(1)}
-  50%{filter:url(#lick) blur(2px) brightness(1.18)}
-  100%{filter:url(#lick) blur(2px) brightness(1)}
-}
-.sparks i{
-  position:absolute;width:3px;height:3px;border-radius:50%;
-  background:#ffcf8a;box-shadow:0 0 6px 2px rgba(255,150,50,.8);
-  opacity:0;
-}
-#fire.on .sparks i{animation:spark .9s ease-out both}
-.sparks i:nth-child(1){left:14%;bottom:0;animation-delay:.15s}
-.sparks i:nth-child(2){left:31%;bottom:0;animation-delay:.4s}
-.sparks i:nth-child(3){left:47%;bottom:0;animation-delay:.25s}
-.sparks i:nth-child(4){left:62%;bottom:0;animation-delay:.55s}
-.sparks i:nth-child(5){left:78%;bottom:0;animation-delay:.35s}
-.sparks i:nth-child(6){left:90%;bottom:0;animation-delay:.6s}
-@keyframes spark{
-  0%{opacity:0;transform:translateY(0) translateX(0)}
-  15%{opacity:1}
-  100%{opacity:0;transform:translateY(-70vh) translateX(18px)}
-}
+#gl.on{display:block}
 
 /* ================= MEMBERS (revealed beneath) ================= */
 #members{visibility:hidden}
@@ -273,23 +211,7 @@ h1{
   </symbol>
 </svg>
 
-<!-- burn filters -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <filter id="char" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.032 0.06" numOctaves="4" seed="7" result="n">
-        <animate attributeName="seed" values="7;8;9;10;11;12;7" dur="0.9s" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="46" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-    <filter id="lick" x="-20%" y="-40%" width="140%" height="180%">
-      <feTurbulence type="turbulence" baseFrequency="0.05 0.11" numOctaves="3" seed="3" result="n">
-        <animate attributeName="seed" values="3;5;7;9;11;3" dur="0.45s" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="34" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </defs>
-</svg>
+
 
 <!-- ====== MEMBERS PAGE (beneath the door) ====== -->
 <div class="panel" id="members">
@@ -370,12 +292,8 @@ h1{
   </div>
 </div>
 
-<!-- fire riding the burn line, above the door -->
-<div id="fire" aria-hidden="true">
-  <div class="char-rim"></div>
-  <div class="edge2"></div>
-  <div class="edge"></div>
-  <div class="sparks"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<!-- WebGL fire -->
+<canvas id="gl" aria-hidden="true"></canvas>
 </div>
 
 <script>
@@ -407,7 +325,7 @@ function hashPass(s){
 window.hashPass = hashPass;
 
 const $=id=>document.getElementById(id);
-const front=$("front"), fire=$("fire"), members=$("members"), pw=$("pw"), err=$("err");
+const front=$("front"), members=$("members"), pw=$("pw"), err=$("err"), glCanvas=$("gl");
 
 $("king").textContent = "King: " + KING;
 $("when").textContent = WHEN;
@@ -415,6 +333,199 @@ $("doc").href = DOC_URL;
 if(AGREEMENTS_URL){ $("agree").href = AGREEMENTS_URL; $("agree").style.display = "inline-block"; }
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ==========================================================
+   WEBGL FIRE — powerful, warm.
+   A procedural burn front: fbm-noise flames on a blackbody
+   ramp weighted toward gold, char eating the page edge,
+   heat bloom washing the room beneath, embers in-shader.
+   The DOM page's clip is driven by the same eased progress
+   every frame, so the paper and the flame never separate.
+   ========================================================== */
+
+const VERT = `
+attribute vec2 p;
+void main(){ gl_Position = vec4(p,0.,1.); }`;
+
+const FRAG = `
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;      // seconds since ignition
+uniform float u_prog;      // eased burn progress 0..1
+
+float hash(vec2 v){ return fract(sin(dot(v, vec2(127.1,311.7)))*43758.5453); }
+float noise(vec2 v){
+  vec2 i=floor(v), f=fract(v);
+  f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),
+             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
+}
+float fbm(vec2 v){
+  float s=0., a=.5;
+  for(int i=0;i<5;i++){ s+=a*noise(v); v*=2.03; v+=17.7; a*=.5; }
+  return s;
+}
+
+/* warm blackbody-ish ramp: deep red -> ember orange -> gold -> warm white */
+vec3 fireRamp(float t){
+  t=clamp(t,0.,1.);
+  vec3 c1=vec3(.45,.04,.0);    // deep red
+  vec3 c2=vec3(.95,.30,.03);   // ember
+  vec3 c3=vec3(1.,.62,.16);    // gold
+  vec3 c4=vec3(1.,.88,.62);    // warm white
+  vec3 c = mix(c1,c2,smoothstep(0.,.35,t));
+  c = mix(c,c3,smoothstep(.35,.7,t));
+  c = mix(c,c4,smoothstep(.7,1.,t));
+  return c;
+}
+
+void main(){
+  vec2 uv = gl_FragCoord.xy/u_res;       // 0,0 bottom-left
+  float aspect = u_res.x/u_res.y;
+  vec2 q = vec2(uv.x*aspect, uv.y);
+
+  /* burn line climbs from below screen to above */
+  float lineY = mix(-.08, 1.15, u_prog);
+  /* ragged front: big slow waves + fine chatter */
+  float rag = fbm(vec2(q.x*2.2, u_time*.35))*.075
+            + fbm(vec2(q.x*9., u_time*.9))*.02;
+  float edgeY = lineY + rag;
+
+  float d = uv.y - edgeY;                 // + above line (unburned page), - below (revealed)
+
+  vec3 col = vec3(0.);
+  float alpha = 0.;
+
+  /* ---- CHAR: blackened crumbling rim of the remaining page ---- */
+  float charBand = smoothstep(.045,.0,d) * smoothstep(-.012,.004,d);
+  float charTex = fbm(q*26. + u_time*.4);
+  vec3 charCol = mix(vec3(.02,.008,.004), vec3(.16,.05,.015), charTex*.7);
+  col += charCol*charBand;
+  alpha = max(alpha, charBand*.98);
+
+  /* glowing cracks inside the char */
+  float crack = smoothstep(.62,.9,charTex) * charBand;
+  col += vec3(1.,.42,.08)*crack*.9;
+
+  /* ---- SCORCH: heat browning ahead of the flame ---- */
+  float scorch = smoothstep(.16,.03,d) * step(.0,d);
+  float scTex = fbm(q*12.+3.1);
+  col += vec3(.10,.045,.015)*scorch*scTex;
+  alpha = max(alpha, scorch*scTex*.5);
+
+  /* ---- FLAMES: licking up over the page from the line ---- */
+  float flameH = .16 + .05*fbm(vec2(q.x*3.,u_time*.6));
+  if(d>-.01 && d<flameH+.06){
+    /* upward-streaming combustion noise */
+    float n = fbm(vec2(q.x*5.5, (uv.y*3.0 - u_time*2.1)));
+    n = n*.75 + .25*fbm(vec2(q.x*13., uv.y*7. - u_time*4.2));
+    float body = 1. - clamp(d/flameH,0.,1.);
+    float flame = body*body * smoothstep(.28,.75,n + body*.35);
+    float heat = flame * (1.1 - d/flameH);
+    vec3 fc = fireRamp(heat*1.25);
+    col += fc*flame*1.35;
+    alpha = max(alpha, min(flame*1.6,1.));
+  }
+
+  /* ---- BLOOM: warm light washing both sides of the line ---- */
+  float glow = exp(-abs(d)*10.) * .55 + exp(-abs(d)*3.2)*.22;
+  col += vec3(1.,.5,.16)*glow;
+  alpha = max(alpha, glow*.85);
+
+  /* ---- EMBERS: sparks lifting off the front ---- */
+  for(int i=0;i<14;i++){
+    float fi=float(i);
+    float seed=hash(vec2(fi,7.3));
+    float life=fract(u_time*(.55+seed*.5)+seed*7.);
+    float ex=fract(seed*13.7 + fi*.318)* aspect;
+    float ey=lineY + .015 + life*(.22+seed*.2);
+    float wob=(fbm(vec2(fi,u_time*1.5))-.5)*.05;
+    vec2 ep=vec2(ex+wob, ey);
+    float dist=length((q-ep)*vec2(1.,1.));
+    float spark=exp(-dist*dist*u_res.y*3.2)*(1.-life)*(step(.02,life));
+    col += vec3(1.,.72,.34)*spark*1.4;
+    alpha = max(alpha, min(spark,1.));
+  }
+
+  /* fade everything at the very start and end */
+  float fade = smoothstep(0.,.04,u_prog)*smoothstep(1.,.93,u_prog);
+  gl_FragColor = vec4(col*fade, clamp(alpha,0.,1.)*fade);
+}`;
+
+let glCtx=null, glProg=null;
+function initGL(){
+  const gl = glCanvas.getContext("webgl",{alpha:true,premultipliedAlpha:true});
+  if(!gl) return null;
+  function sh(type,src){
+    const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.warn(gl.getShaderInfoLog(s)); return null; }
+    return s;
+  }
+  const vs=sh(gl.VERTEX_SHADER,VERT), fs=sh(gl.FRAGMENT_SHADER,FRAG);
+  if(!vs||!fs) return null;
+  const pr=gl.createProgram();
+  gl.attachShader(pr,vs); gl.attachShader(pr,fs); gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS)) return null;
+  gl.useProgram(pr);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 3,-1, -1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,"p");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND);
+  glCtx=gl; glProg=pr;
+  return gl;
+}
+function sizeGL(){
+  const dpr=Math.min(window.devicePixelRatio||1, 2);
+  glCanvas.width = Math.floor(innerWidth*dpr);
+  glCanvas.height = Math.floor(innerHeight*dpr);
+  glCtx.viewport(0,0,glCanvas.width,glCanvas.height);
+}
+
+/* catch, then consume: hold low ~18%, then accelerate away */
+function easeBurn(t){
+  if(t<.18) return .03*(t/.18);
+  const u=(t-.18)/.82;
+  return .03 + .97*(u*u*(3.-2.*u)); // smoothstep on the climb
+}
+
+const BURN_MS = 2200;
+
+function burnDown(){
+  const gl = glCtx || initGL();
+  if(!gl){ // no WebGL: honest cut
+    front.style.display="none";
+    members.classList.add("on");
+    return;
+  }
+  sizeGL();
+  glCanvas.classList.add("on");
+  members.classList.add("on");     // the room waits beneath the door
+  front.classList.add("burning");
+  const uRes=gl.getUniformLocation(glProg,"u_res");
+  const uTime=gl.getUniformLocation(glProg,"u_time");
+  const uProg=gl.getUniformLocation(glProg,"u_prog");
+  const t0=performance.now();
+  function frame(now){
+    const t=(now-t0)/BURN_MS;
+    const p=easeBurn(Math.min(t,1));
+    /* page clip frame-locked to the shader's line */
+    front.style.clipPath = `inset(-8% -8% ${((p*1.23-.08)*100).toFixed(2)}% -8%)`;
+    gl.uniform2f(uRes,glCanvas.width,glCanvas.height);
+    gl.uniform1f(uTime,(now-t0)/1000);
+    gl.uniform1f(uProg,p);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(t<1){ requestAnimationFrame(frame); }
+    else{
+      front.style.display="none";
+      glCanvas.classList.remove("on");
+    }
+  }
+  requestAnimationFrame(frame);
+}
 
 function tryUnlock(){
   if(hashPass(pw.value) === PASS_HASH){
@@ -424,13 +535,7 @@ function tryUnlock(){
       return;
     }
     pw.blur();
-    members.classList.add("on");   // members page waits beneath the door
-    front.classList.add("burning"); // the door catches fire
-    fire.classList.add("on");
-    setTimeout(()=>{
-      front.style.display = "none";
-      fire.classList.remove("on");
-    }, 1600);
+    burnDown();
   } else {
     err.classList.add("on");
     const p = front.querySelector(".panel");
