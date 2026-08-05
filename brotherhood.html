@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Brooklyn Brotherhood</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#121110">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --iron:#121110;
+  --iron-2:#1a1815;
+  --bone:#e6dfd1;
+  --bone-dim:rgba(230,223,209,.55);
+  --bone-faint:rgba(230,223,209,.32);
+  --fire:#c2491d;
+  --fire-hot:#d95a29;
+  --line:#3d3931;
+  --line-strong:#57503f;
+  --f-disp:"Big Shoulders Display","Arial Narrow",sans-serif;
+  --f-body:"Libre Franklin","Helvetica Neue",sans-serif;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+html{height:100%}
+body{
+  margin:0;background:var(--iron);color:var(--bone);
+  font-family:var(--f-body);line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  display:grid;place-items:center;min-height:100%;
+  padding:2rem 1.25rem;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(90% 70% at 50% 30%, rgba(26,24,21,0), rgba(0,0,0,.5) 100%);
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:30;
+  background-image:var(--grain);opacity:.05;mix-blend-mode:overlay;
+}
+
+.panel{position:relative;z-index:1;text-align:center;max-width:26rem;width:100%}
+.mark{display:block;margin:0 auto}
+
+.eyebrow{
+  font-weight:700;color:var(--fire);
+  font-size:.68rem;letter-spacing:.36em;text-indent:.36em;text-transform:uppercase;
+  margin:0 0 .9rem;
+}
+h1{
+  font-family:var(--f-disp);font-weight:800;text-transform:uppercase;
+  font-size:clamp(3rem,13vw,4.6rem);line-height:.92;margin:0;letter-spacing:.015em;
+  text-shadow:0 1px 0 rgba(0,0,0,.9), 0 -1px 0 rgba(255,255,255,.06);
+}
+.bar{width:56px;height:4px;background:var(--fire);margin:1.6rem auto 0}
+
+/* ================= FRONT (the door) =================
+   A full-screen layer. On the right word, THIS burns away. */
+#front{
+  position:fixed;inset:0;z-index:20;background:var(--iron);
+  display:grid;place-items:center;overflow:auto;
+  padding:2rem 1.25rem;
+}
+#front::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(90% 70% at 50% 30%, rgba(26,24,21,0), rgba(0,0,0,.5) 100%);
+}
+/* the flame breathes — banked fire, waiting. Slow and low. */
+.mark-wrap{position:relative;width:92px;height:104px;margin:0 auto 2rem}
+.mark-wrap .mark{position:absolute;inset:0;width:100%;height:100%;margin:0}
+.mark-wrap .hot{opacity:0;animation:banked 8s ease-in-out infinite}
+@keyframes banked{
+  0%,100%{opacity:0}
+  50%{opacity:.4}
+}
+
+/* the four archetypes */
+.arche{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;
+  max-width:21rem;margin:1.7rem auto 0;
+}
+.arche .a{display:flex;flex-direction:column;align-items:center;gap:.45rem;color:var(--line-strong)}
+.arche svg{width:26px;height:26px;display:block}
+.arche span{
+  font-family:var(--f-disp);font-weight:700;text-transform:uppercase;
+  font-size:.86rem;letter-spacing:.14em;text-indent:.14em;color:var(--bone-dim);
+}
+
+.sub{color:var(--bone-dim);font-size:.95rem;font-weight:500;margin:1.6rem 0 0}
+.field{
+  display:flex;align-items:stretch;max-width:21rem;margin:1.8rem auto 0;
+  border:2px solid var(--line-strong);background:var(--iron-2);
+}
+.field:focus-within{border-color:var(--bone)}
+.field input{
+  flex:1;min-width:0;background:transparent;border:0;
+  color:var(--bone);font-weight:600;font-size:1.05rem;
+  padding:.95rem 1.1rem;outline:none;letter-spacing:.12em;
+}
+.field input::placeholder{color:var(--bone-faint);font-weight:500;letter-spacing:.04em}
+.field button{
+  background:var(--fire);color:#f2ece0;border:0;cursor:pointer;
+  font-family:var(--f-disp);font-weight:700;font-size:1rem;letter-spacing:.14em;text-indent:.14em;
+  text-transform:uppercase;padding:0 1.5rem;transition:background .15s;
+}
+.field button:hover{background:var(--fire-hot)}
+.field button:active{background:var(--fire-hot);transform:translateY(1px)}
+.err{color:#cf7a55;font-size:.85rem;font-weight:500;margin-top:1rem;min-height:1.35em;opacity:0;transition:opacity .2s}
+.err.on{opacity:1}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+
+/* ================= THE BURN (WebGL) =================
+   The front page is clipped in JS, frame-locked to the shader's
+   burn line. The canvas draws the fire itself. */
+#front.burning{pointer-events:none}
+#gl{
+  position:fixed;inset:0;z-index:21;pointer-events:none;display:none;
+  width:100vw;height:100vh;
+}
+#gl.on{display:block}
+
+/* the hearth: a low fire somewhere just out of sight.
+   The blessing doesn't leave — it settles. */
+#hearth{
+  position:fixed;left:0;right:0;bottom:0;height:42vh;z-index:0;
+  pointer-events:none;opacity:0;transition:opacity 2.5s ease;
+  background:
+    radial-gradient(70% 90% at 50% 110%, rgba(214,110,40,.20), transparent 65%),
+    radial-gradient(40% 55% at 50% 112%, rgba(255,160,70,.14), transparent 70%);
+}
+#hearth.on{opacity:1;animation:hearth 9s ease-in-out infinite}
+@keyframes hearth{
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.25)}
+}
+
+/* ================= MEMBERS (revealed beneath) ================= */
+#members{visibility:hidden}
+#members.on{visibility:visible}
+#members .mark{width:64px;height:72px;margin-bottom:1.2rem}
+#members .name{
+  font-family:var(--f-disp);font-weight:700;text-transform:uppercase;
+  font-size:1.15rem;letter-spacing:.22em;text-indent:.22em;color:var(--bone-dim);margin:0;
+}
+#members.on > *{opacity:0;animation:rise .55s ease both}
+#members.on > :nth-child(1){animation-delay:.35s}
+#members.on > :nth-child(2){animation-delay:.45s}
+#members.on > :nth-child(3){animation-delay:.6s}
+#members.on > :nth-child(4){animation-delay:.75s}
+#members.on > :nth-child(5){animation-delay:.85s}
+#members.on > :nth-child(6){animation-delay:.95s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.king{
+  margin:2rem auto 0;max-width:21rem;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:1.6rem 0;
+}
+.king .lbl{
+  display:block;font-weight:700;font-size:.66rem;letter-spacing:.34em;text-indent:.34em;
+  text-transform:uppercase;color:var(--fire);margin-bottom:.7rem;
+}
+.king .who{
+  font-family:var(--f-disp);font-weight:700;text-transform:uppercase;
+  font-size:2.4rem;line-height:1;display:block;letter-spacing:.02em;
+  text-shadow:0 1px 0 rgba(0,0,0,.9), 0 -1px 0 rgba(255,255,255,.06);
+}
+.king .when{display:block;color:var(--bone-dim);font-size:.92rem;font-weight:500;margin-top:.6rem}
+
+.go{
+  display:block;margin:1.8rem auto 0;max-width:21rem;
+  background:var(--bone);color:var(--iron);text-decoration:none;
+  padding:1.15rem 1.3rem;transition:background .15s;
+  font-family:var(--f-disp);font-weight:700;font-size:1.3rem;letter-spacing:.08em;text-indent:.08em;
+  text-transform:uppercase;
+}
+.go small{
+  display:block;font-family:var(--f-body);font-weight:500;text-transform:none;
+  letter-spacing:.01em;text-indent:0;font-size:.76rem;opacity:.6;margin-top:.25rem;
+}
+.go:hover{background:#fff}
+.go:active{background:#fff;transform:translateY(1px)}
+.alt{
+  display:inline-block;margin-top:1.4rem;color:var(--bone-dim);
+  font-weight:600;font-size:.78rem;letter-spacing:.14em;text-indent:.14em;text-transform:uppercase;
+  text-decoration:none;border-bottom:2px solid var(--line-strong);padding-bottom:3px;transition:.15s;
+}
+.alt:hover{color:var(--bone);border-bottom-color:var(--fire)}
+.tiny{margin-top:2.2rem;font-size:.78rem;font-weight:500;color:var(--bone-faint);letter-spacing:.06em;text-transform:uppercase}
+
+@media (max-width: 380px){
+  .mark-wrap{width:76px;height:86px;margin-bottom:1.6rem}
+  .arche{gap:.25rem}
+  .arche svg{width:22px;height:22px}
+  .arche span{font-size:.72rem;letter-spacing:.09em;text-indent:.09em}
+  .field input{font-size:1rem;padding:.85rem .9rem}
+  .field button{padding:0 1.1rem;font-size:.92rem}
+  .king .who{font-size:2rem}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;filter:none !important}
+  #members.on > *{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<!-- ====== THE CREST ====== -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="crest" viewBox="0 0 92 104">
+    <path d="M8 6h76v14l-6 6v28c0 24-14.5 38.5-32 45C28.5 92.5 14 78 14 54V26l-6-6V6Z"
+          fill="#1a1815" stroke="#57503f" stroke-width="2.5" stroke-linejoin="miter"/>
+    <path d="M15 12h62v6.6l-6 6V54c0 20.4-12.2 32.9-25 38.6C33.2 86.9 21 74.4 21 54V24.6l-6-6V12Z"
+          fill="none" stroke="#3d3931" stroke-width="1.5"/>
+    <rect x="12" y="9" width="3" height="3" fill="#57503f"/>
+    <rect x="77" y="9" width="3" height="3" fill="#57503f"/>
+    <path d="M46 26 56 42l-3 8 8-4-1 14-9 16h-10l-9-16 3-13 6 5-2-12 7-14Z"
+          fill="#c2491d" stroke-linejoin="miter"/>
+    <path d="M46 48l5 8-2 10-3 6-3-6-2-10 5-8Z" fill="#1a1815"/>
+    <path d="M28 84 46 92l18-8" fill="none" stroke="#57503f" stroke-width="2.5" stroke-linecap="square"/>
+  </symbol>
+</svg>
+
+
+
+<!-- the hearth: warmth that remains after the initiation -->
+<div id="hearth" aria-hidden="true"></div>
+
+<!-- ====== MEMBERS PAGE (beneath the door) ====== -->
+<div class="panel" id="members">
+  <svg class="mark" aria-hidden="true"><use href="#crest"/></svg>
+  <p class="name">The Brooklyn Brotherhood</p>
+
+  <p class="king">
+    <span class="lbl">Next Circle</span>
+    <span class="who" id="king"></span>
+    <span class="when" id="when"></span>
+  </p>
+
+  <a class="go" id="doc" href="#" target="_blank" rel="noopener">
+    Read the Minutes
+    <small>Opens the group's Google Doc</small>
+  </a>
+
+  <a class="alt" id="agree" href="#" target="_blank" rel="noopener" style="display:none">Group Agreements</a>
+
+  <p class="tiny">Read before every meeting</p>
+</div>
+
+<!-- ====== FRONT PAGE (the door — this is what burns) ====== -->
+<div id="front">
+  <div class="panel">
+    <div class="mark-wrap" aria-hidden="true">
+      <svg class="mark"><use href="#crest"/></svg>
+      <svg class="mark hot" viewBox="0 0 92 104">
+        <path d="M46 26 56 42l-3 8 8-4-1 14-9 16h-10l-9-16 3-13 6 5-2-12 7-14Z" fill="#d95a29"/>
+        <path d="M46 48l5 8-2 10-3 6-3-6-2-10 5-8Z" fill="#1a1815"/>
+      </svg>
+    </div>
+
+    <p class="eyebrow">Members Only</p>
+    <h1>The<br>Brooklyn<br>Brotherhood</h1>
+    <div class="bar"></div>
+
+    <div class="arche" aria-label="The four archetypes">
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M5 22 5 11l6 5 5-9 5 9 6-5v11Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
+          <path d="M5 25h22" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>King</span>
+      </div>
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 3v18" stroke="currentColor" stroke-width="2"/>
+          <path d="M16 3l3 4h-6l3-4Z" fill="currentColor"/>
+          <path d="M9 19h14" stroke="currentColor" stroke-width="2"/>
+          <path d="M13 23h6M16 21v7" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>Warrior</span>
+      </div>
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 4l3.2 8.1L28 13l-6.5 5.8L23.4 28 16 23.2 8.6 28l1.9-9.2L4 13l8.8-.9L16 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
+          <path d="M16 13l1.6 3.4-1.6 4.2-1.6-4.2L16 13Z" fill="currentColor"/>
+        </svg>
+        <span>Magician</span>
+      </div>
+      <div class="a">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 27 5 16V9l5-4 6 6 6-6 5 4v7L16 27Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
+          <path d="M16 11v6" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>Lover</span>
+      </div>
+    </div>
+
+    <p class="sub">Speak the word, and the circle opens.</p>
+    <div class="field">
+      <input id="pw" type="password" placeholder="Passcode" autocomplete="off" spellcheck="false"
+             autocapitalize="off" autocorrect="off" enterkeyhint="go" aria-label="Passcode">
+      <button id="enter" type="button">Enter</button>
+    </div>
+    <p class="err" id="err">Not it. Try again, brother.</p>
+  </div>
+</div>
+
+<!-- WebGL fire -->
+<canvas id="gl" aria-hidden="true"></canvas>
+</div>
+
+<script>
+/* ==========================================================
+   EDIT THESE. Nothing else needs touching.
+   ========================================================== */
+
+// The living minutes doc.
+const DOC_URL = "https://docs.google.com/document/d/12HqrCqY2IK63cd8ilDliOk0ALpgb0yXbcKdO6u1wNmk/edit?usp=drivesdk";
+
+// The one line to update every two weeks.
+const KING = "Brian";
+const WHEN = "Wednesday, August 12";
+
+// Optional. Paste a URL here and a second link appears. Leave empty to hide it.
+const AGREEMENTS_URL = "";
+
+// Passcode, scrambled. Currently: brothers  (not case sensitive)
+// To change it: open this page → F12 → Console → hashPass("newword") → paste the result here.
+const PASS_HASH = "ho63da";
+
+/* ========================================================== */
+
+function hashPass(s){
+  let h=5381; s=String(s).toLowerCase().trim();
+  for(let i=0;i<s.length;i++){ h=((h<<5)+h)+s.charCodeAt(i); h=h|0; }
+  return (h>>>0).toString(36);
+}
+window.hashPass = hashPass;
+
+const $=id=>document.getElementById(id);
+const front=$("front"), members=$("members"), pw=$("pw"), err=$("err"), glCanvas=$("gl"), hearth=$("hearth");
+
+$("king").textContent = "King: " + KING;
+$("when").textContent = WHEN;
+$("doc").href = DOC_URL;
+if(AGREEMENTS_URL){ $("agree").href = AGREEMENTS_URL; $("agree").style.display = "inline-block"; }
+
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ==========================================================
+   WEBGL FIRE — powerful, warm.
+   A procedural burn front: fbm-noise flames on a blackbody
+   ramp weighted toward gold, char eating the page edge,
+   heat bloom washing the room beneath, embers in-shader.
+   The DOM page's clip is driven by the same eased progress
+   every frame, so the paper and the flame never separate.
+   ========================================================== */
+
+const VERT = `
+attribute vec2 p;
+void main(){ gl_Position = vec4(p,0.,1.); }`;
+
+const FRAG = `
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;    // seconds since the strike
+uniform vec2 u_center;   // where the word was spoken (px, y up)
+uniform float u_maxd;    // farthest corner distance (px)
+
+/* ---- timeline (keep in sync with JS) ----
+   0.00-0.35  THE STRIKE  : shock ring, flash, the blow lands
+   0.10-1.05  THE PAIN    : molten cracks spread through the iron
+   1.05-      THE SHADOW  : the shell breaks; shards fall into dark
+   1.90-3.30  THE BLESSING: golden light rises; the room stands   */
+#define T_SHATTER 1.35
+#define T_BLESS   2.20
+#define T_END     4.40
+#define CELL 96.0
+
+float hash(vec2 v){ return fract(sin(dot(v, vec2(127.1,311.7)))*43758.5453); }
+vec2 hash2(vec2 v){ return fract(sin(vec2(dot(v,vec2(127.1,311.7)),dot(v,vec2(269.5,183.3))))*43758.5453); }
+float noise(vec2 v){
+  vec2 i=floor(v), f=fract(v); f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),
+             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
+}
+float fbm(vec2 v){
+  float s=0., a=.5;
+  for(int i=0;i<4;i++){ s+=a*noise(v); v*=2.03; v+=17.7; a*=.5; }
+  return s;
+}
+
+vec2 site(vec2 g){ return (g + .5 + (hash2(g)-.5)*.85) * CELL; }
+
+/* nearest-cell + edge distance at a rest-frame point */
+void voro(vec2 p, out vec2 cellId, out float f1, out float f2){
+  vec2 g = floor(p/CELL);
+  f1=1e9; f2=1e9; cellId=g;
+  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){
+    vec2 c=g+vec2(x,y);
+    float d=length(p-site(c));
+    if(d<f1){ f2=f1; f1=d; cellId=c; }
+    else if(d<f2){ f2=d; }
+  }
+}
+
+/* per-shard release and motion */
+float relTime(vec2 c){
+  return T_SHATTER + length(site(c)-u_center)/u_maxd * .9 + hash(c)*0.08;
+}
+vec2 shardDisp(vec2 c, float age){
+  float vx=(hash(c+3.1)-.5)*120.;
+  return vec2(vx*age, -(60.*age + 900.*age*age));
+}
+float shardRot(vec2 c, float age){ return (hash(c+7.7)-.5)*2.6*age; }
+
+vec3 fireRamp(float t){
+  t=clamp(t,0.,1.);
+  vec3 c=mix(vec3(.45,.04,.0),vec3(.95,.30,.03),smoothstep(0.,.35,t));
+  c=mix(c,vec3(1.,.62,.16),smoothstep(.35,.7,t));
+  c=mix(c,vec3(1.,.88,.62),smoothstep(.7,1.,t));
+  return c;
+}
+
+void main(){
+  vec2 px = gl_FragCoord.xy;
+  float t = u_time;
+  float distC = length(px - u_center);
+
+  vec3 col = vec3(0.);
+  float alpha = 0.;
+
+  /* ============ ACT I — THE STRIKE ============ */
+  if(t < .6){
+    float ring = distC - t*2800.;
+    float shock = exp(-ring*ring*.0008) * smoothstep(.5,.05,t);
+    col += vec3(1.,.86,.6)*shock*1.2;
+    alpha = max(alpha, shock);
+    float flash = exp(-distC*.004) * smoothstep(.22,.0,t);
+    col += vec3(1.,.8,.5)*flash;
+    alpha = max(alpha, flash*.9);
+  }
+
+  /* ============ ACT II — THE PAIN (it comes in waves) ============ */
+  if(t < T_SHATTER + .25){
+    vec2 cid; float f1,f2;
+    voro(px,cid,f1,f2);
+    float edge = f2 - f1;                     /* 0 at fracture lines */
+
+    /* the cracks do NOT spread smoothly — they lurch outward in three
+       spasms, each one a fresh wave of it, with a held breath between */
+    float p = clamp((t-.12)/(T_SHATTER-.12), 0., 1.);
+    float w = p*3.;
+    float lurch = (floor(w) + smoothstep(.0,.3,fract(w))) / 3.;
+    float crackR = lurch * u_maxd * 1.08;
+
+    float arrived = smoothstep(crackR, crackR-140., distC);
+    float vein = smoothstep(9.,0.,edge) * arrived;
+    /* veins burn hottest at the wound, fade toward the fresh tips */
+    float fromWound = 1. - clamp(distC/max(crackR,1.), 0., 1.);
+    float pulse = .7 + .3*sin(t*20. + hash(cid)*6.28);
+    float heat = vein*pulse*(.55+.6*fromWound)*smoothstep(T_SHATTER+.25,T_SHATTER-.1,t);
+    col += fireRamp(.7+.3*vein)*heat*1.6;
+    alpha = max(alpha, heat);
+    /* heat haze bleeding off the veins */
+    col += vec3(1.,.45,.12)*smoothstep(26.,0.,edge)*arrived*.25*pulse;
+    alpha = max(alpha, smoothstep(26.,0.,edge)*arrived*.35);
+
+    /* pain dims the world: a deep-red veil closes in from the edges,
+       tightening with each spasm, so the hurt is felt, not just seen */
+    vec2 uv = px/u_res;
+    float vig = smoothstep(.35,.95,length(uv-.5)*1.5);
+    float ache = vig * lurch * .55 * smoothstep(T_SHATTER+.2,T_SHATTER-.05,t);
+    col += vec3(.14,.01,.0)*ache;
+    alpha = max(alpha, ache);
+  }
+
+  /* ============ ACT III — THE SHADOW (the shell falls) ============ */
+  if(t >= T_SHATTER){
+    /* find which fallen shard covers this pixel: search rest cells above */
+    bool hit=false; vec2 hc; float hEdge=0.;
+    for(int y=0;y<=4;y++) for(int x=-1;x<=1;x++){
+      if(hit) continue;
+      vec2 g = floor(px/CELL) + vec2(x,y);
+      float age = max(0., t - relTime(g));
+      vec2 s = site(g);
+      vec2 d = shardDisp(g,age);
+      float th = shardRot(g,age);
+      float cs=cos(th), sn=sin(th);
+      vec2 lp = px - s - d;
+      vec2 pr = s + vec2(cs*lp.x + sn*lp.y, -sn*lp.x + cs*lp.y);
+      vec2 cid; float f1,f2; voro(pr,cid,f1,f2);
+      if(cid==g && age < 1.15){
+        hit=true; hc=g; hEdge=f2-f1;
+      }
+    }
+    if(hit){
+      float age = max(0., t - relTime(hc));
+      /* iron shard, grained */
+      vec3 iron = vec3(.071,.067,.063) * (0.9 + .25*fbm(px*.06 + hash(hc)*40.));
+      float fade = smoothstep(1.15,.7,age);
+      col = mix(col, iron, fade);
+      alpha = max(alpha, fade);
+      /* molten fracture edges, cooling gold -> ember -> dark */
+      float cool = smoothstep(0.,.9,age);
+      vec3 edgeCol = mix(vec3(1.,.8,.45), vec3(.85,.22,.03), cool);
+      float glowE = smoothstep(7.,0.,hEdge) * (1.-cool*.85) * fade;
+      col += edgeCol*glowE*1.6;
+      alpha = max(alpha, glowE);
+    }
+    /* the shadow itself: darkness gathers, then the blessing lifts it */
+    float veil = smoothstep(T_SHATTER, T_SHATTER+.4, t) * smoothstep(2.9, 1.9, t) * .5;
+    alpha = max(alpha, veil);
+  }
+
+  /* ============ ACT IV — THE BLESSING (the embrace) ============
+     The pain closed in from the edges in red. The blessing makes
+     the same gesture, healed: warmth gathers in from all sides,
+     wraps, holds, breathes — then gently lets go. */
+  if(t > T_BLESS - .4){
+    float b = smoothstep(T_BLESS-.4, T_BLESS+.9, t) * smoothstep(T_END, T_END-.7, t);
+    vec2 uv = px/u_res;
+    float r = length(uv-.5);
+
+    /* the arms close: a wide soft ring of gold drawing inward, slow */
+    float armR = mix(.95, .18, smoothstep(T_BLESS-.2, T_BLESS+1.2, t));
+    float embrace = exp(-pow((r-armR)*3.2,2.)) * b;
+    /* the hold: once wrapped, the whole room breathes with you —
+       a calm chest-rhythm, ~3 second cycle */
+    float breath = .85 + .15*sin((t-T_BLESS)*2.1);
+    col += vec3(1.,.74,.40)*embrace*.5*breath;
+    alpha = max(alpha, embrace*.55);
+
+    /* full warm wash while held — being inside the hug */
+    float held = smoothstep(T_BLESS+.8, T_BLESS+1.3, t) * b;
+    col += vec3(1.,.70,.38)*held*.16*breath;
+    alpha = max(alpha, held*.22);
+
+    /* motes don't rise — they are gathered. Each drifts slowly inward
+       from where it was scattered, and settles near the center */
+    for(int i=0;i<10;i++){
+      float fi=float(i), seed=hash(vec2(fi,3.3));
+      float a0 = seed*6.28318;
+      float r0 = (.3+.5*fract(seed*7.7));
+      float gathered = smoothstep(T_BLESS-.2, T_BLESS+1.6, t - seed*.4);
+      float rr = mix(r0, .10+.06*seed, gathered);
+      vec2 mp = (vec2(.5) + vec2(cos(a0),sin(a0))*rr*vec2(1.,u_res.x/u_res.y)) * u_res;
+      float m = exp(-dot(px-mp,px-mp)*.004)*b*(.4+.5*seed)*breath;
+      col += vec3(1.,.86,.58)*m;
+      alpha = max(alpha, m*.7);
+    }
+
+    /* peace: at the last, everything softens to a single quiet warmth
+       at the heart of the room, and releases */
+    float rest = smoothstep(T_END-1.1, T_END-.4, t);
+    float still = exp(-r*r*7.)*rest*b*.3;
+    col += vec3(1.,.8,.52)*still;
+    alpha = max(alpha, still);
+  }
+
+  float endFade = smoothstep(T_END, T_END-.35, t);
+  gl_FragColor = vec4(col*endFade, clamp(alpha,0.,1.)*endFade);
+}`;
+
+let glCtx=null, glProg=null;
+function initGL(){
+  const gl = glCanvas.getContext("webgl",{alpha:true,premultipliedAlpha:true});
+  if(!gl) return null;
+  function sh(type,src){
+    const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){ console.warn(gl.getShaderInfoLog(s)); return null; }
+    return s;
+  }
+  const vs=sh(gl.VERTEX_SHADER,VERT), fs=sh(gl.FRAGMENT_SHADER,FRAG);
+  if(!vs||!fs) return null;
+  const pr=gl.createProgram();
+  gl.attachShader(pr,vs); gl.attachShader(pr,fs); gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS)) return null;
+  gl.useProgram(pr);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 3,-1, -1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,"p");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND);
+  glCtx=gl; glProg=pr;
+  return gl;
+}
+function sizeGL(){
+  const dpr=Math.min(window.devicePixelRatio||1, 2);
+  glCanvas.width = Math.floor(innerWidth*dpr);
+  glCanvas.height = Math.floor(innerHeight*dpr);
+  glCtx.viewport(0,0,glCanvas.width,glCanvas.height);
+}
+
+/* the initiation runs on absolute time; acts are in the shader */
+const SHATTER_MS = 1350;   // the shell breaks — DOM handed to the shader
+const TOTAL_MS   = 4400;
+const SPASMS = [530, 940];  // the pain comes in waves — tremor at each crack lurch
+
+function burnDown(){
+  const gl = glCtx || initGL();
+  if(!gl){ // no WebGL: honest cut
+    front.style.display="none";
+    members.classList.add("on");
+    hearth.classList.add("on");
+    return;
+  }
+  sizeGL();
+  glCanvas.classList.add("on");
+  members.classList.add("on");     // the room waits beyond the shell
+
+  /* the strike lands where the word was spoken */
+  const fr = document.querySelector("#front .field").getBoundingClientRect();
+  const cx = fr.left + fr.width/2;
+  const cy = fr.top + fr.height/2;
+  const dpr = glCanvas.width / innerWidth;
+  const maxd = Math.max(
+    Math.hypot(cx, cy), Math.hypot(innerWidth-cx, cy),
+    Math.hypot(cx, innerHeight-cy), Math.hypot(innerWidth-cx, innerHeight-cy)
+  ) * dpr + 120*dpr;
+
+  front.classList.add("burning");
+  const uRes=gl.getUniformLocation(glProg,"u_res");
+  const uTime=gl.getUniformLocation(glProg,"u_time");
+  const uCenter=gl.getUniformLocation(glProg,"u_center");
+  const uMaxd=gl.getUniformLocation(glProg,"u_maxd");
+  const t0=performance.now();
+  let shattered=false;
+
+  function frame(now){
+    const ms = now - t0;
+    const t = ms/1000;
+
+    /* the blow: the whole door shudders */
+    let k = 0;
+    if(ms < 360) k = (1 - ms/360) * 7;
+    /* ...and trembles again at each spasm of the cracks */
+    for(const s of SPASMS){
+      if(ms >= s && ms < s+200) k = Math.max(k, (1-(ms-s)/200) * 4);
+    }
+    if(k > 0 && !shattered){
+      front.style.transform = `translate(${(Math.random()-.5)*k}px, ${(Math.random()-.5)*k}px)`;
+    } else if(!shattered){
+      front.style.transform = "";
+    }
+
+    /* the shell breaks: the page becomes shards owned by the shader */
+    if(!shattered && ms >= SHATTER_MS){
+      shattered = true;
+      front.style.display = "none";
+    }
+
+    gl.uniform2f(uRes,glCanvas.width,glCanvas.height);
+    gl.uniform1f(uTime,t);
+    gl.uniform2f(uCenter, cx*dpr, glCanvas.height - cy*dpr);
+    gl.uniform1f(uMaxd, maxd);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+
+    if(ms < TOTAL_MS){ requestAnimationFrame(frame); }
+    else{
+      glCanvas.classList.remove("on");
+      hearth.classList.add("on");   // what the fire leaves behind: warmth
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function tryUnlock(){
+  if(hashPass(pw.value) === PASS_HASH){
+    if(reducedMotion){
+      front.style.display = "none";
+      members.classList.add("on");
+      hearth.classList.add("on");
+      return;
+    }
+    pw.blur();
+    burnDown();
+  } else {
+    err.classList.add("on");
+    const p = front.querySelector(".panel");
+    p.classList.add("shake");
+    setTimeout(()=>p.classList.remove("shake"), 400);
+    pw.select();
+  }
+}
+$("enter").addEventListener("click", tryUnlock);
+pw.addEventListener("keydown", e=>{ if(e.key==="Enter") tryUnlock(); });
+pw.addEventListener("input", ()=>err.classList.remove("on"));
+
+if(window.matchMedia("(hover: hover) and (pointer: fine)").matches){
+  window.addEventListener("load", ()=>pw.focus());
+}
+</script>
+</body>
+</html>
