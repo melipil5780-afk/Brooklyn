@@ -89,8 +89,18 @@ body{margin:0;background:#04050a;color:var(--parch);font-family:var(--f-body);li
   margin:clamp(1.4rem,4vh,2.4rem) auto 0;padding:clamp(.7rem,2.1vh,1.1rem) 0;opacity:.58;
   border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);transition:opacity .5s ease}
 .arche:hover{opacity:.85}
+/* The icons are lit by the coals, not by CSS. --h is written every frame
+   from the same value that drives the fire in the shader, so the row
+   warms and cools with it — including guttering to near-black when a
+   wrong passcode drops vig. Nothing here animates on its own; it only
+   responds. That is the difference between alive and busy. */
 .arche .a{display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--bronze);
-  transition:color .5s ease,transform .3s ease;filter:drop-shadow(0 1px 5px rgba(0,0,0,.95))}
+  --h:.5;
+  transition:color .5s ease,transform .3s ease;
+  filter:drop-shadow(0 1px 5px rgba(0,0,0,.95))
+         drop-shadow(0 0 calc(3px + 9px*var(--h)) rgba(208,118,47,calc(.10 + .40*var(--h))))
+         brightness(calc(.66 + .82*var(--h)))
+         saturate(calc(.80 + .80*var(--h)))}
 .arche .a:hover{color:var(--ember-hot);transform:translateY(-2px)}
 .arche svg{width:21px;height:21px;display:block}
 .arche span{font-family:var(--f-disp);font-weight:500;font-size:.575rem;letter-spacing:.2em;
@@ -231,7 +241,7 @@ body{margin:0;background:#04050a;color:var(--parch);font-family:var(--f-body);li
     <div class="arche z-mid" aria-label="King, Warrior, Magician, Lover">
       <div class="a">
         <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 21V12l5 4 5-8 5 8 5-4v9"/><path d="M6 25h20"/></svg><span>King</span>
+          <path d="M7.5 19.5V10l4.25 4L16 7.5l4.25 6.5L24.5 10v9.5"/><rect x="6.5" y="19.5" width="19" height="5" rx="1.2"/></svg><span>King</span>
       </div>
       <div class="a">
         <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -778,13 +788,26 @@ void main(){
                    + texture2D(u_mark, uv1+vec2(-px.x,-px.y)*0.34).a ) / 7.0;
 
         /* ---------------------------------------------------------
-           OCCLUSION — pushed hard. 0.30 -> 0.12, and the kernel is
-           wider. The block now genuinely eats the skyline behind it
-           and drops a shadow up into the haze. This, plus the
-           loosened scrim, is what makes it read as tonnage.
+           IT BLOCKS LIGHT — it does not cast a drop shadow.
+
+           There is nothing behind this block for a shadow to land on:
+           it stands in open air with the borough a long way back, and
+           the only light source is the fire BELOW it. An offset dark
+           copy of the letters is therefore wrong twice over — wrong
+           direction, and no receiving surface. That is what reads as
+           a sticker.
+
+           So the offset is gone. The silhouette sits exactly where the
+           block is, and instead of multiplying everything down it
+           extinguishes LIGHT specifically: lit windows, sodium haze
+           and the glow off the coals get eaten, while sky that was
+           already black is already black and nothing visible happens.
+
+           A solid object darkens a city and does nothing to a void.
+           Getting that difference right is most of the effect.
            --------------------------------------------------------- */
-        vec2 so = vec2(u_markTexel.x*15.0, u_markTexel.y*15.0);
-        vec2 sc = uv0 + vec2(0.0, -u_markTexel.y*11.0);
+        vec2 so = vec2(u_markTexel.x*13.0, u_markTexel.y*13.0);
+        vec2 sc = uv0;
         float occ = ( texture2D(u_mark, sc).a
                     + texture2D(u_mark, sc+vec2( so.x, 0.0)).a
                     + texture2D(u_mark, sc+vec2(-so.x, 0.0)).a
@@ -794,7 +817,9 @@ void main(){
                     + texture2D(u_mark, sc+vec2(-so.x*0.7, so.y*0.7)).a
                     + texture2D(u_mark, sc+vec2( so.x*0.7,-so.y*0.7)).a
                     + texture2D(u_mark, sc+vec2(-so.x*0.7,-so.y*0.7)).a ) / 9.0;
-        c *= mix(1.0, 0.12, smoothstep(0.02, 0.60, occ)*u_title);
+        float blockage = smoothstep(0.03, 0.72, occ) * u_title;
+        float lum = dot(c, vec3(0.2126,0.7152,0.0722));
+        c *= mix(1.0, mix(0.62, 0.06, smoothstep(0.02, 0.38, lum)), blockage);
 
         /* While it is still hot it throws light INTO the haze instead of
            only eating it. The mark is composited after the bloom pass, so
@@ -833,15 +858,39 @@ void main(){
              recess, which is where "heavy" actually lives. */
           float warmth = pow(below, 1.55);
           float grain  = fbm4c(vec3(huv*vec2(150.0,52.0), 1.7));
-          vec3 alb  = mix(vec3(0.440,0.452,0.472), vec3(0.098,0.104,0.116), grain);
-          vec3 warm = vec3(1.00,0.50,0.17);
-          vec3 cool = vec3(0.60,0.69,0.88);
 
-          vec3 key = mix(cool*1.00, warm*2.35, warmth);
-          vec3 tc  = alb*( key*(0.28 + 2.60*dif)*mix(1.0, flick, warmth) + cool*0.20 );
-          tc += warm*rimD*1.45*mix(0.22,1.0,warmth)*flick;   /* fire on the underside cuts */
-          tc += cool*rimU*0.62;                              /* sky on the top cuts */
-          tc *= mix(1.0, 0.14, wall);                        /* the side wall goes near black */
+          /* TIGHTER GRAIN. When the albedo top end went up (0.26 -> 0.44)
+             the bottom end stayed put, which nearly doubled the mottling
+             contrast — 4.5:1 instead of 2.9:1 — and the face went blotchy
+             rather than forged. Same texture, a third of the swing. */
+          vec3 alb  = mix(vec3(0.430,0.442,0.462), vec3(0.238,0.246,0.266), grain);
+
+          /* TWO DIFFERENT WARMS, on purpose.
+
+             A deep orange light blows the red channel long before green
+             and blue, so the tonemapper clips one channel at a time and
+             bright areas slide orange -> red -> yellow as they brighten.
+             That uneven hue drift is what reads as broken colour.
+
+             So the broad KEY is warm white, whose channels are close
+             enough to clip together and go to white the way hot metal
+             actually does. The saturated orange is kept only for the
+             rims, where it stays low enough never to overdrive. */
+          vec3 warm = vec3(1.00,0.50,0.17);   /* rims only */
+          vec3 key  = vec3(1.00,0.56,0.24);   /* the broad light */
+          vec3 cool = vec3(0.64,0.71,0.86);
+
+          vec3 lit = mix(cool*1.00, key*2.00, warmth);
+          vec3 tc  = alb*( lit*(0.32 + 2.05*dif)*mix(1.0, flick, warmth) + cool*0.20 );
+          tc += warm*rimD*1.10*mix(0.22,1.0,warmth)*flick;   /* fire on the underside cuts */
+          tc += cool*rimU*0.52;                              /* sky on the top cuts */
+
+          /* The extruded side is a SURFACE, not a dark edge. It turns
+             away from us and down toward the coals, so it takes a dim
+             warm graze that dies out toward the top of the block. Flat
+             black here was the other thing making the slab read as a
+             cut-out rather than a solid. */
+          tc = mix(tc, tc*0.12 + warm*flick*(0.045 + 0.30*warmth) + cool*0.030, wall);
 
           /* ---------------------------------------------------------
              JUST STRUCK.
@@ -872,6 +921,17 @@ void main(){
             glow = mix(glow, vec3(1.55,0.92,0.34), smoothstep(0.40,0.74,hh));
             glow = mix(glow, vec3(1.72,1.48,1.18), smoothstep(0.74,1.00,hh));
             tc = tc*(1.0 - 0.45*hh) + glow*hh*1.75;
+          }
+
+          /* HUE-PRESERVING ROLL-OFF, the safety net for all of the above.
+             Anything that still overdrives past 1.0 bleaches toward a
+             neutral of the same level instead of letting whichever
+             channel is largest clip on its own. Hot things go white;
+             they do not go red, then orange, then yellow-green. */
+          float pk = max(max(tc.r, tc.g), tc.b);
+          if(pk > 1.0){
+            float ov = clamp(1.0 - 1.0/pk, 0.0, 1.0);
+            tc = mix(tc, vec3(pk), ov*0.45);
           }
 
           c = mix(c, tc, cov*u_title);
@@ -1073,6 +1133,7 @@ function frame(now){
   gl.drawArrays(gl.TRIANGLES,0,3);
 
   poseFront(T);
+  poseArche(T);
 }
 requestAnimationFrame(frame);
 
@@ -1188,6 +1249,39 @@ if(document.fonts && document.fonts.ready) document.fonts.ready.then(measureMark
 measureMark();
 setTimeout(measureMark, 300);
 setTimeout(measureMark, 1500);
+
+/* ---------- the four take their light from the coals ----------
+   Same breath function as the shader, so they are genuinely in sync
+   with the fire rather than merely near it. Each gets its own phase —
+   in unison it would read as a mechanical pulse; offset, it reads as
+   four objects catching the same uneven light.
+
+   Writes are gated on a real change, so this costs nothing on frames
+   where the fire is steady. */
+const arcs = Array.prototype.slice.call(document.querySelectorAll(".arche .a"));
+arcs.forEach(a=>{
+  a._h = 0.5; a._w = 0;                     /* _w = pointer warmth */
+  a.addEventListener("pointerenter", ()=>{ a._w = 1; });
+  a.addEventListener("pointerleave", ()=>{ a._w = 0; });
+});
+function poseArche(T){
+  if(reduced){ return; }
+  const breath = 0.88 + 0.12*Math.sin(T*0.52) + 0.06*Math.sin(T*1.37+2.1) + 0.04*Math.sin(T*3.1+0.6);
+  for(let i=0;i<arcs.length;i++){
+    const a = arcs[i], ph = i*1.73;
+    /* a little per-icon flicker on top of the shared breath */
+    const f = breath*(0.93 + 0.07*Math.sin(T*2.31+ph) + 0.045*Math.sin(T*5.07+ph*1.9));
+    let h = (vig*f - 0.30)/0.78;
+    h = h < 0 ? 0 : h > 1 ? 1 : h;
+    if(a._w) h = h + (1-h)*0.75;             /* hover: this one takes the fire */
+    a._h += (h - a._h)*0.12;
+    if(Math.abs(a._h - a._last) > 0.006 || a._last === undefined){
+      a._last = a._h;
+      a.style.setProperty("--h", a._h.toFixed(3));
+    }
+  }
+}
+if(reduced) arcs.forEach(a=>a.style.setProperty("--h","0.62"));
 
 /* ---------- the front page moves like an object ---------- */
 const decks = [hall.querySelector(".panel")];
